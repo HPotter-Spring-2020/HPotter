@@ -1,16 +1,19 @@
-# ---
-# container: 'debian:sshd'
-# listen_IP: '127.0.0.1'
-# listen_port: 22
-# ---
-# container: 'debian:telnetd'
-# listen_IP: '127.0.0.1'
-# listen_port: 22
 ---
-container: 'httpd:latest'
+container: 'debian:sshd'
 listen_IP: '127.0.0.1'
-listen_port: 8080
+listen_port: 22
 request_length: 4096
+---
+container: 'debian:telnetd'
+listen_IP: '127.0.0.1'
+listen_port: 23
+request_length: 4096
+---
+#this will be removed permenately
+#container: 'httpd:latest'
+#listen_IP: '127.0.0.1'
+#listen_port: 8080
+#request_length: 4096
 ---
 container: 'httpd:latest'
 listen_IP: '127.0.0.1'
