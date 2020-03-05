@@ -1,5 +1,6 @@
 import socket
 import threading
+import re
 
 from hpotter import tables
 from hpotter.logger import logger
@@ -70,6 +71,13 @@ class OneWayThread(threading.Thread):
         logger.debug(self.direction)
         if length > 0 and len(self.total) > 0:
             db.write(tables.Data(direction=self.direction, data=str(self.total), connection=self.connection))
+
+            printChars = r'[ -\[\]-~]+' # excludes \
+            exp = r'"' + printChars + r'\\r' + printChars + r'\\r'
+            m = re.search(exp, str(self.total))
+            if m:
+                userAndPw = m.group()[1:].split('\\r')
+                db.write(tables.Credentials(username=userAndPw[0], password=userAndPw[1], connection=self.connection))
 
     def shutdown(self):
         self.shutdown_requested = True

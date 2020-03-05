@@ -1,11 +1,15 @@
-# ---
-# container: 'debian:sshd'
-# listen_IP: '127.0.0.1'
-# listen_port: 22
-# ---
-# container: 'debian:telnetd'
-# listen_IP: '127.0.0.1'
-# listen_port: 22
+---
+container: 'debian:sshd'
+listen_IP: '127.0.0.1'
+listen_port: 22
+request_length: 4096
+---
+container: 'debian:telnetd'
+listen_IP: '127.0.0.1'
+listen_port: 23
+request_length: 4096
+accepted_socket_timeout: 30
+container_socket_timeout: 30
 ---
 container: 'httpd:latest'
 listen_IP: '127.0.0.1'
@@ -17,4 +21,4 @@ listen_IP: '127.0.0.1'
 listen_port: 8081
 request_length: 4096
 TLS: true
-
+...
