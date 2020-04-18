@@ -3,11 +3,13 @@ container: 'debian:sshd'
 listen_IP: '127.0.0.1'
 listen_port: 22
 request_length: 4096
+SSH: true
+
 ---
-container: 'debian:telnetd'
-listen_IP: '127.0.0.1'
-listen_port: 23
-request_length: 4096
+#container: 'debian:telnetd'
+#listen_IP: '127.0.0.1'
+#listen_port: 23
+#request_length: 4096
 ---
 #this will be removed permenately
 #container: 'httpd:latest'
@@ -15,9 +17,9 @@ request_length: 4096
 #listen_port: 8080
 #request_length: 4096
 ---
-container: 'httpd:latest'
-listen_IP: '127.0.0.1'
-listen_port: 8081
-request_length: 4096
-TLS: true
+#container: 'httpd:latest'
+#listen_IP: '127.0.0.1'
+#listen_port: 8081
+#request_length: 4096
+#TLS: true
 

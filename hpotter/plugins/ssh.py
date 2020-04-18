@@ -6,11 +6,11 @@ import paramiko
 from paramiko.py3compat import u, decodebytes
 import _thread
 
-import hpotter.env
+#import hpotter.venv
 from hpotter import tables
 from hpotter.logger import logger
-from hpotter.env import write_db, ssh_server
-from hpotter.docker_shell.shell import fake_shell
+#from hpotter.env import write_db, ssh_server
+#from hpotter.docker_shell.shell import fake_shell
 
 class SSHServer(paramiko.ServerInterface):
     undertest = False
@@ -76,57 +76,85 @@ class SSHServer(paramiko.ServerInterface):
         pixelwidth, pixelheight, modes):
         return True
 
-class SshThread(threading.Thread):
-    def __init__(self):
-        super(SshThread, self).__init__()
-        self.ssh_socket = socket.socket(socket.AF_INET)
-        self.ssh_socket.bind(('0.0.0.0', 22))
-        self.ssh_socket.listen(4)
-        self.chan = None
-
-    def run(self):
-        while True:
-            try:
-                client, addr = self.ssh_socket.accept()
-            except ConnectionAbortedError:
-                break
-
-            connection = tables.Connections(
-                sourceIP=addr[0],
-                sourcePort=addr[1],
-                destIP=self.ssh_socket.getsockname()[0],
-                destPort=self.ssh_socket.getsockname()[1],
-                proto=tables.TCP)
-            write_db(connection)
-
-            transport = paramiko.Transport(client)
-            transport.load_server_moduli()
-
-            # Experiment with different key sizes at:
-            # http://travistidwell.com/jsencrypt/demo/
-            host_key = paramiko.RSAKey(filename="RSAKey.cfg")
-            transport.add_server_key(host_key)
 
 
-            server = SSHServer(connection)
-            transport.start_server(server=server)
+def my_method(client):
+    connection = tables.Connections(
+        sourceIP=addr[0],
+        sourcePort=addr[1],
+        destIP=self.ssh_socket.getsockname()[0],
+        destPort=self.ssh_socket.getsockname()[1],
+        proto=tables.TCP)
+    #write_db(connection)
 
-            self.chan = transport.accept()
-            if not self.chan:
-                logger.info('no chan')
-                continue
-            fake_shell(self.chan, connection, '# ')
-            self.chan.close()
+    transport = paramiko.Transport(client)
+    transport.load_server_moduli()
+
+    # Experiment with different key sizes at:
+    # http://travistidwell.com/jsencrypt/demo/
+    host_key = paramiko.RSAKey(filename="RSAKey.cfg")
+    transport.add_server_key(host_key)
 
 
-    def stop(self):
-        self.ssh_socket.close()
-        if self.chan:
-            self.chan.close()
-        try:
-            _thread.exit()
-        except SystemExit:
-            pass
+    server = SSHServer(connection)
+    transport.start_server(server=server)
+
+    chan = transport.accept()
+    return chan
+
+
+
+#class SshThread(threading.Thread):
+#    def __init__(self):
+#        super(SshThread, self).__init__()
+#        self.ssh_socket = socket.socket(socket.AF_INET)
+#        self.ssh_socket.bind(('0.0.0.0', 22))
+#        self.ssh_socket.listen(4)
+#        self.chan = None
+#
+#    def run(self):
+#        while True:
+#            try:
+#                client, addr = self.ssh_socket.accept()
+#            except ConnectionAbortedError:
+#                break
+#
+#            connection = tables.Connections(
+#                sourceIP=addr[0],
+#                sourcePort=addr[1],
+#                destIP=self.ssh_socket.getsockname()[0],
+#                destPort=self.ssh_socket.getsockname()[1],
+#                proto=tables.TCP)
+#            write_db(connection)
+#
+#            transport = paramiko.Transport(client)
+#            transport.load_server_moduli()
+#
+#            Experiment with different key sizes at:
+#            http://travistidwell.com/jsencrypt/demo/
+#            host_key = paramiko.RSAKey(filename="RSAKey.cfg")
+#            transport.add_server_key(host_key)
+#
+#
+#            server = SSHServer(connection)
+#            transport.start_server(server=server)
+#
+#            self.chan = transport.accept()
+#            if not self.chan:
+#                logger.info('no chan')
+#                continue
+#            fake_shell(self.chan, connection, '# ')
+#            self.chan.close()
+#
+#
+#    def stop(self):
+#        self.ssh_socket.close()
+#        if self.chan:
+#            self.chan.close()
+#        try:
+#            _thread.exit()
+#        except SystemExit:
+#            pass
 
 def start_server():
     global ssh_server

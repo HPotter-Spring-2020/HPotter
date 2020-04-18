@@ -11,6 +11,7 @@ from hpotter.logger import logger
 from hpotter import tables
 from hpotter.db import db
 from hpotter.plugins.ContainerThread import ContainerThread
+from hpotter.plugins.ssh import my_method
 
 class ListenThread(threading.Thread):
     def __init__(self, config):
@@ -18,6 +19,7 @@ class ListenThread(threading.Thread):
         self.config = config
         self.shutdown_requested = False
         self.TLS = 'TLS' in self.config and self.config['TLS']
+        self.SSH = 'SSH' in self.config and self.config['SSH']
         self.context = None
         self.container_list = []
 
@@ -90,10 +92,15 @@ class ListenThread(threading.Thread):
 
         while True:
             source = None
-            try:
+            try:    
                 source, address = listen_socket.accept()
+                
+                if self.SSH:        
+                    source = my_method(source)
+
                 if self.TLS:
                     source = self.context.wrap_socket(source, server_side=True)
+            
             except socket.timeout:
                 if self.shutdown_requested:
                     logger.info('ListenThread shutting down')
