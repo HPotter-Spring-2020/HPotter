@@ -11,7 +11,7 @@ from hpotter.logger import logger
 from hpotter import tables
 from hpotter.db import db
 from hpotter.plugins.ContainerThread import ContainerThread
-from hpotter.plugins.ssh import my_method
+from hpotter.plugins.ssh import get_clear_text
 
 class ListenThread(threading.Thread):
     def __init__(self, config):
@@ -96,7 +96,7 @@ class ListenThread(threading.Thread):
                 source, address = listen_socket.accept()
                 
                 if self.SSH:        
-                    source = my_method(source)
+                    source = get_clear_text(source, address)
 
                 if self.TLS:
                     source = self.context.wrap_socket(source, server_side=True)
