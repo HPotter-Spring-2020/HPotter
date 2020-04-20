@@ -96,7 +96,7 @@ class ListenThread(threading.Thread):
                 source, address = listen_socket.accept()
                 
                 if self.SSH:        
-                    source = get_clear_text(source, address)
+                    source = get_clear_text(source, address, listen_socket.getsockname()[0] , listen_socket.getsockname()[1]  )
 
                 if self.TLS:
                     source = self.context.wrap_socket(source, server_side=True)

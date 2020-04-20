@@ -75,12 +75,12 @@ class SSHServer(paramiko.ServerInterface):
         return True
 
 
-def get_clear_text(client, addr):
+def get_clear_text(client, addr, destIP, destPort):
     connection = tables.Connections(
         sourceIP=addr[0],
         sourcePort=addr[1],
-        destIP= '',
-        destPort= '',
+        destIP= destIP,
+        destPort= destPort,
         proto=tables.TCP)
 
     transport = paramiko.Transport(client)

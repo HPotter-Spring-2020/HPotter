@@ -30,7 +30,6 @@ class ContainerThread(threading.Thread):
         logger.debug(self.container_ip)
 
         ports = nwsettings['Ports']
-        print(ports)  #remove later
 
         assert len(ports) == 1
 
