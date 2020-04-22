@@ -117,6 +117,8 @@ class ListenThread(threading.Thread):
             source = None
             try:
                 source, address = listen_socket.accept()
+                timeout = self.config.get('accepted_socket_timeout')
+                source.settimeout(timeout)
                 if self.TLS:
                     source = self.context.wrap_socket(source, server_side=True)
             except socket.timeout:
