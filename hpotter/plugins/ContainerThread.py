@@ -32,7 +32,7 @@ class ContainerThread(threading.Thread):
         logger.debug(self.container_ip)
 
         ports = nwsettings['Ports']
-        assert len(ports) == 1
+        assert len(ports) == 1, 'Not exactly 1 port open on container'
 
         for p in ports.keys():
             self.container_port = int(p.split('/')[0])
@@ -43,8 +43,9 @@ class ContainerThread(threading.Thread):
         for x in range(9):
             try:
                 self.dest = socket.create_connection( \
-                    (self.container_ip, self.container_port), timeout=2)
-                self.dest.settimeout(None)
+                    (self.container_ip, self.container_port))
+                timeout = self.config.get('container_socket_timeout')
+                self.dest.settimeout(timeout)
                 logger.debug(self.dest)
                 return
             except Exception as err:
@@ -101,7 +102,8 @@ class ContainerThread(threading.Thread):
     def run(self):
         try:
             client = docker.from_env()
-            self.container = client.containers.run(self.config['container'], detach=True)
+            self.container = client.containers.run( \
+                self.config['container'], detach=True)
             logger.info('Started: %s', self.container)
             self.container.reload()
         except Exception as err:
