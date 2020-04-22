@@ -3,8 +3,6 @@ python3 -m hpotter.jsonserver
 sudo -E python3 -m hpotter
 sudo -E python3 -m hpotter.jsonserver
 ----
-sudo python3 -m hpotter --p httpd.yml
-----
 python3 -m unittest
 coverage run --source=hpotter -m unittest
 coverage report

@@ -2,7 +2,6 @@ import sys
 import signal
 import time
 import yaml
-import argparse
 
 from hpotter.logger import logger
 from hpotter.plugins.ListenThread import ListenThread
@@ -23,27 +22,14 @@ class HP():
     def __init__(self):
         self.listen_threads = []
 
-    def read_yaml(self, filename):
-        try:
-            with open(filename) as f:
-                for config in yaml.safe_load_all(f):
-                    lt = ListenThread(config)
-                    self.listen_threads.append(lt)
-                    lt.start()
-        except FileNotFoundError as fnfe:
-            logger.info(fnfe)
-
     def startup(self):
         db.open()
 
-        self.read_yaml('plugins.yml')
-
-        parser = argparse.ArgumentParser()
-        parser.add_argument('--p', action='append', default=[])
-        args = parser.parse_args()
-
-        for arg in args.p:
-            self.read_yaml(arg)
+        with open('plugins.yml') as f:
+            for config in yaml.safe_load_all(f):
+                lt = ListenThread(config)
+                self.listen_threads.append(lt)
+                lt.start()
 
     def shutdown(self):
         db.close()

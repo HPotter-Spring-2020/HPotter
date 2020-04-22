@@ -1,22 +1,6 @@
-
+---
+name: 'debian sshd'
 container: 'debian:sshd'
 listen_IP: '127.0.0.1'
 listen_port: 2222
 request_length: 4096
-max_threads: 5
-# ---
-# container: 'debian:telnetd'
-# listen_IP: '127.0.0.1'
-# listen_port: 23
-# max_threads: 5
-# ---
-# container: 'httpd:latest'
-# listen_IP: '127.0.0.1'
-# listen_port: 8080
-# request_length: 4096
-# ---
-# container: 'httpd:latest'
-# listen_IP: '127.0.0.1'
-# listen_port: 8081
-# request_length: 4096
-# TLS: true
