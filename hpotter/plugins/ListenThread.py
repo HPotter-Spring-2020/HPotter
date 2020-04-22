@@ -45,19 +45,30 @@ class ListenThread(threading.Thread):
 
             # can't use an iobyte file for this as load_cert_chain only take a
             # filesystem path :/
-            cert_file = tempfile.NamedTemporaryFile(delete=False)
-            cert_file.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
-            cert_file.close()
-
-            key_file = tempfile.NamedTemporaryFile(delete=False)
-            key_file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
-            key_file.close()
+            files = self.create_cert_related_files(cert, key)
+            cert_file = files['cert_file']
+            key_file = files['key_file']
 
             self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             self.context.load_cert_chain(certfile=cert_file.name, keyfile=key_file.name)
 
-            os.remove(cert_file.name)
-            os.remove(key_file.name)
+            self.remove_cert_related_files(cert_file, key_file)
+
+    def create_cert_related_files(self, cert, key):
+        cert_file = tempfile.NamedTemporaryFile(delete=False)
+        cert_file.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+        cert_file.close()
+
+        key_file = tempfile.NamedTemporaryFile(delete=False)
+        key_file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
+        key_file.close()
+
+        return {'cert_file': cert_file, 'key_file': key_file}
+
+    def remove_cert_related_files(self, cert_file, key_file):
+        os.remove(cert_file.name)
+        os.remove(key_file.name)
+
 
     def save_connection(self, address):
         if 'add_dest' in self.config:
