@@ -27,21 +27,9 @@ class ListenThread(threading.Thread):
             self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             self.context.load_cert_chain(self.config['cert_file'], self.config['key_file'])
         else:
-            key = crypto.PKey()
-            key.generate_key(crypto.TYPE_RSA, 4096)
-            cert = crypto.X509()
-            cert.get_subject().C = "UK"
-            cert.get_subject().ST = "London"
-            cert.get_subject().L = "Diagon Alley"
-            cert.get_subject().OU = "The Leaky Caldron"
-            cert.get_subject().O = "J.K. Incorporated"
-            cert.get_subject().CN = socket.gethostname()
-            cert.set_serial_number(1000)
-            cert.gmtime_adj_notBefore(0)
-            cert.gmtime_adj_notAfter(10*365*24*60*60)
-            cert.set_issuer(cert.get_subject())
-            cert.set_pubkey(key)
-            cert.sign(key, 'sha1')
+            info = self.create_cert_key()
+            cert = info['cert']
+            key = info['key']
 
             files = self.create_cert_related_files(cert, key)
             cert_file = files['cert_file']
@@ -51,6 +39,25 @@ class ListenThread(threading.Thread):
             self.context.load_cert_chain(certfile=cert_file.name, keyfile=key_file.name)
 
             self.remove_cert_related_files(cert_file, key_file)
+
+    def create_cert_key(self):
+        key = crypto.PKey()
+        key.generate_key(crypto.TYPE_RSA, 4096)
+        cert = crypto.X509()
+        cert.get_subject().C = "UK"
+        cert.get_subject().ST = "London"
+        cert.get_subject().L = "Diagon Alley"
+        cert.get_subject().OU = "The Leaky Caldron"
+        cert.get_subject().O = "J.K. Incorporated"
+        cert.get_subject().CN = socket.gethostname()
+        cert.set_serial_number(1000)
+        cert.gmtime_adj_notBefore(0)
+        cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)
+        cert.set_issuer(cert.get_subject())
+        cert.set_pubkey(key)
+        cert.sign(key, 'sha1')
+
+        return {'cert': cert, 'key': key}
 
     def create_cert_related_files(self, cert, key):
         # can't use an iobyte file for this as load_cert_chain only take a
