@@ -43,8 +43,6 @@ class ListenThread(threading.Thread):
             cert.set_pubkey(key)
             cert.sign(key, 'sha1')
 
-            # can't use an iobyte file for this as load_cert_chain only take a
-            # filesystem path :/
             files = self.create_cert_related_files(cert, key)
             cert_file = files['cert_file']
             key_file = files['key_file']
@@ -55,6 +53,8 @@ class ListenThread(threading.Thread):
             self.remove_cert_related_files(cert_file, key_file)
 
     def create_cert_related_files(self, cert, key):
+        # can't use an iobyte file for this as load_cert_chain only take a
+        # filesystem path :/
         cert_file = tempfile.NamedTemporaryFile(delete=False)
         cert_file.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
         cert_file.close()
