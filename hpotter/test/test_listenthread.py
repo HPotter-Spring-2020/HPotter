@@ -7,6 +7,22 @@ from hpotter.plugins.ListenThread import ListenThread
 
 class TestListenThread(unittest.TestCase):
 
+    def test_cert_key_info(self):
+        info = ListenThread.create_cert_key(self)
+        cert = info['cert']
+        key = info['key']
+
+        print(cert.get_subject().C)
+        self.assertEqual(cert.get_subject().C, "UK")
+        self.assertEqual(cert.get_subject().ST, "London")
+        self.assertEqual(cert.get_subject().L, "Diagon Alley")
+        self.assertEqual(cert.get_subject().OU, "The Leaky Caldron")
+        self.assertEqual(cert.get_subject().O, "J.K. Incorporated")
+        # self.assertEqual(cert.get_subject().CN, "?") Don't know how to mock() the socket.getHostName() call
+        self.assertEqual(cert.get_serial_number(), 1000)
+        self.assertEqual(cert.get_issuer(), cert.get_subject())
+
+
     def test_cert_creation_and_removal(self):   # Check if the method creates and removes cert files properly
         cert = crypto.X509()
         key = crypto.PKey()
