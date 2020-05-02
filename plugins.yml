@@ -3,6 +3,7 @@ container: 'debian:sshd'
 listen_IP: '127.0.0.1'
 listen_port: 22
 request_length: 4096
+SSH: true
 ---
 container: 'debian:telnetd'
 listen_IP: '127.0.0.1'
