@@ -1,3 +1,16 @@
+>>> a=ipaddress.IPv4Address('127.0.0.1')
+>>> a.is_
+a.is_global       a.is_loopback     a.is_private      a.is_unspecified
+a.is_link_local   a.is_multicast    a.is_reserved
+>>> a.is_private
+True
+>>> a=ipaddress.IPv4Address('172.0.0.1')
+>>> a.is_private
+False
+>>> a=ipaddress.IPv4Address('172.16.0.1')
+>>> a.is_private
+True
+
 import iptc
 chain = iptc.Chain(iptc.Table(iptc.Table.FILTER), "OUTPUT")
 policy = iptc.Policy("DROP")

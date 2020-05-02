@@ -6,6 +6,8 @@ import os
 
 from OpenSSL import crypto
 from time import gmtime, mktime
+from multiprocessing.pool import ThreadPool
+from threading import Semaphore
 
 from hpotter.logger import logger
 from hpotter import tables
@@ -22,6 +24,8 @@ class ListenThread(threading.Thread):
         self.SSH = 'SSH' in self.config and self.config['SSH']
         self.context = None
         self.container_list = []
+        self.thread_pool = ThreadPool(processes=self.config['max_threads'])
+        self.workers = Semaphore(self.config['max_threads'])
 
     # https://stackoverflow.com/questions/27164354/create-a-self-signed-x509-certificate-in-python
     def gen_cert(self):
@@ -77,6 +81,28 @@ class ListenThread(threading.Thread):
                 proto=tables.TCP)
             db.write(self.connection)
 
+    # https://stackoverflow.com/questions/37167501/multiprocessing-python-is-it-possible-to-send-to-the-pool-a-job-sequentially
+    def start_container(self, source):
+        container = ContainerThread(source, self.connection, self.config)
+        self.container_list.append(container)
+        container.start()
+        logger.info('Waiting for container death')
+        while True:
+            if not container.is_alive():
+                logger.info('Container: %s dead releasing worker', container)
+                self.release_worker()
+                break
+
+    def spawn_container(self, source):
+        self.workers.acquire()
+        self.thread_pool.apply_async(self.start_container, (source,))
+
+    def release_worker(self):
+        self.workers.release()
+        logger.info('Worker released')
+
+
+
     def run(self):
         if self.TLS:
             self.gen_cert()
@@ -111,9 +137,7 @@ class ListenThread(threading.Thread):
                 logger.info(exc)
 
             self.save_connection(address)
-            container = ContainerThread(source, self.connection, self.config)
-            self.container_list.append(container)
-            container.start()
+            self.spawn_container(source)
 
         if listen_socket:
             listen_socket.close()
@@ -124,3 +148,4 @@ class ListenThread(threading.Thread):
         for c in self.container_list:
             if c.is_alive():
                 c.shutdown()
+                self.release_worker()
