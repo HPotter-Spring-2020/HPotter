@@ -33,37 +33,57 @@ class ListenThread(threading.Thread):
             self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             self.context.load_cert_chain(self.config['cert_file'], self.config['key_file'])
         else:
-            key = crypto.PKey()
-            key.generate_key(crypto.TYPE_RSA, 4096)
-            cert = crypto.X509()
-            cert.get_subject().C = "UK"
-            cert.get_subject().ST = "London"
-            cert.get_subject().L = "Diagon Alley"
-            cert.get_subject().OU = "The Leaky Caldron"
-            cert.get_subject().O = "J.K. Incorporated"
-            cert.get_subject().CN = socket.gethostname()
-            cert.set_serial_number(1000)
-            cert.gmtime_adj_notBefore(0)
-            cert.gmtime_adj_notAfter(10*365*24*60*60)
-            cert.set_issuer(cert.get_subject())
-            cert.set_pubkey(key)
-            cert.sign(key, 'sha1')
 
-            # can't use an iobyte file for this as load_cert_chain only take a
-            # filesystem path :/
-            cert_file = tempfile.NamedTemporaryFile(delete=False)
-            cert_file.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
-            cert_file.close()
+            info = self.create_cert_key()
+            cert = info['cert']
+            key = info['key']
 
-            key_file = tempfile.NamedTemporaryFile(delete=False)
-            key_file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
-            key_file.close()
+            files = self.create_cert_related_files(cert, key)
+            cert_file = files['cert_file']
+            key_file = files['key_file']
+
+
 
             self.context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
             self.context.load_cert_chain(certfile=cert_file.name, keyfile=key_file.name)
 
-            os.remove(cert_file.name)
-            os.remove(key_file.name)
+            self.remove_cert_related_files(cert_file, key_file)
+
+    def create_cert_key(self):
+        key = crypto.PKey()
+        key.generate_key(crypto.TYPE_RSA, 4096)
+        cert = crypto.X509()
+        cert.get_subject().C = "UK"
+        cert.get_subject().ST = "London"
+        cert.get_subject().L = "Diagon Alley"
+        cert.get_subject().OU = "The Leaky Caldron"
+        cert.get_subject().O = "J.K. Incorporated"
+        cert.get_subject().CN = socket.gethostname()
+        cert.set_serial_number(1000)
+        cert.gmtime_adj_notBefore(0)
+        cert.gmtime_adj_notAfter(10 * 365 * 24 * 60 * 60)
+        cert.set_issuer(cert.get_subject())
+        cert.set_pubkey(key)
+        cert.sign(key, 'sha1')
+
+        return {'cert': cert, 'key': key}
+
+    def create_cert_related_files(self, cert, key):
+        # can't use an iobyte file for this as load_cert_chain only take a
+        # filesystem path :/
+        cert_file = tempfile.NamedTemporaryFile(delete=False)
+        cert_file.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+        cert_file.close()
+
+        key_file = tempfile.NamedTemporaryFile(delete=False)
+        key_file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
+        key_file.close()
+
+        return {'cert_file': cert_file, 'key_file': key_file}
+
+    def remove_cert_related_files(self, cert_file, key_file):
+        os.remove(cert_file.name)
+        os.remove(key_file.name)
 
     def save_connection(self, address):
         if 'add_dest' in self.config:
