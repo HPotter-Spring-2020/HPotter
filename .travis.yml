@@ -1,0 +1,25 @@
+sudo: true
+
+# Set the build language to Python
+language: python
+python: 
+  - "3.6.7"
+
+# Install the codecov pip dependency
+install:
+  - pip3 install codecov
+  - pip3 install coverage
+  - pip3 install setuptools
+  - pip3 install -r requirements.txt
+
+# Run the unit test
+script:
+  - sudo ~/virtualenv/python3.6.7/bin/coverage run --source hpotter -m unittest discover
+
+# Push the results back to codecov
+after_success:
+  - codecov
+
+os:
+  - linux
+
